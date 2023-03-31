@@ -1,6 +1,7 @@
 #include "MazeHelper.h"
 #include <fstream>
 #include <iostream>
+#include <thread>
 
 MazeHelper::MazeHelper(std::string filename) {
     std::ifstream file(filename);
@@ -129,9 +130,8 @@ std::vector<cMeshObject*> MazeHelper::getMazeMeshesAt(glm::vec2 position, int si
     return meshes;
 }
 
-std::vector<std::vector<char>> MazeHelper::getMazeAt(glm::vec2 position, int size)
+void getMazeAtThread(std::vector<std::vector<char>>& mazeAt, const std::vector<std::vector<char>>& maze, const glm::vec2& position, int size)
 {
-    std::vector<std::vector<char>> mazeAt(size + 2, std::vector<char>(size + 2, '\0'));
     int halfSize = size / 2;
 
     // Swap coordinates since we want y as rows and x as columns
@@ -145,5 +145,17 @@ std::vector<std::vector<char>> MazeHelper::getMazeAt(glm::vec2 position, int siz
                 mazeAt[y - position.y + halfSize][x - position.x + halfSize] = maze[y][x];
         }
     }
+}
+
+std::vector<std::vector<char>> MazeHelper::getMazeAt(glm::vec2 position, int size)
+{
+    std::vector<std::vector<char>> mazeAt(size + 2, std::vector<char>(size + 2, '\0'));
+
+    // Create a thread and pass the necessary arguments
+    std::thread t(getMazeAtThread, std::ref(mazeAt), std::cref(maze), position, size);
+
+    // Wait for the thread to finish and join it
+    t.join();
+
     return mazeAt;
 }

@@ -438,7 +438,7 @@ int main(int argc, char* argv[])
 	//	= glm::vec4(1.0f, 1.0f, 1.0f, 1000.0f);
 	// Make it REALY transparent
 	//pTerrain->RGBA_colour.w = 1.f;
-	pTerrain->position = glm::vec3(-500.0f, -10.0f, 500.0f);
+	pTerrain->position = glm::vec3(-500.0f, -20.0f, 500.0f);
 	pTerrain->setRotationFromEuler(glm::vec3(4.7, 0, 0));
 	pTerrain->isWireframe = false;
 	pTerrain->SetUniformScale(10);
@@ -642,28 +642,13 @@ int main(int argc, char* argv[])
 	//pVAOManager->Load();
 
 	MazeHelper* _mazeHelper = new MazeHelper("maze100.txt");
-	int portionSize = 40.f;
+	int portionSize = 30.f;
 	//glm::vec2 portionPosition = glm::vec2((int)g_cameraEye.x, (int)g_cameraEye.z);
 	glm::vec2 portionPosition = glm::vec2(0, 0);
 	//	std::vector<cMeshObject*> portionMaze = _mazeHelper->getMazeMeshesAt(portionPosition, portionSize);
 
-	std::vector<cMeshObject*> floorTiles;
-	for (size_t i = 0; i < 1600; i++)
-	{
-		cMeshObject* pFloor = new cMeshObject();
-		pFloor->meshName = "Floor";
-		pFloor->friendlyName = "Floor";
-		pFloor->bUse_RGBA_colour = false;
-		pFloor->position = glm::vec3(0, 0.f, 0);
-		pFloor->setRotationFromEuler(glm::vec3(0));
-		pFloor->isWireframe = false;
-		pFloor->SetUniformScale(0.002f);
-		pFloor->textures[0] = "Dungeons_2_Texture_01_A.bmp";
-		pFloor->textureRatios[0] = 1.0f;
-		floorTiles.push_back(pFloor);
-	}
 	std::vector<cMeshObject*> blockTiles;
-	for (size_t i = 0; i < 1600; i++)
+	for (size_t i = 0; i < 900; i++)
 	{
 		cMeshObject* pFloor = new cMeshObject();
 		pFloor->meshName = "Floor";
@@ -796,39 +781,47 @@ int main(int argc, char* argv[])
 			for (size_t x = 0; x < portionSize - 1; x++)
 			{
 				cMeshObject* mesh;
-				if (portionMaze[y][x] == 'o')
-				{
-					mesh = floorTiles[floorIndex++];
-				}
-				else if (portionMaze[y][x] == 'x')
+				glm::vec3 meshPos;
+				if (portionMaze[y][x] == 'x')
 				{
 					mesh = blockTiles[wallIndex++];
-					mesh->position.y + 1.f;
+					meshPos = glm::vec3((portionPosition.x - portionSize / 2 + x) * 1.f, 1.f, (portionPosition.y - portionSize / 2 + y) * 1.f);
+					mesh->bUse_RGBA_colour = false;
+				}
+				else if (portionMaze[y][x] == 'o')
+				{
+					mesh = blockTiles[floorIndex++];
+					meshPos = glm::vec3((portionPosition.x - portionSize / 2 + x) * 1.f, 0.f, (portionPosition.y - portionSize / 2 + y) * 1.f);
+					mesh->position = meshPos;
+					mesh->bUse_RGBA_colour = true;
+					mesh->RGBA_colour = glm::vec4(0.3f, 0.3f, 1.f, 1.f);
 				}
 				else
 				{
 					mesh = nullptr;
 				}
+
 				if (mesh != nullptr && mesh->bIsVisible)
 				{
-					// Set the position of the mesh based on the position of the portion in the maze
-					glm::vec3 meshPos = glm::vec3((portionPosition.x - portionSize / 2 + x) * 1.f, mesh->position.y, (portionPosition.y - portionSize / 2 + y) * 1.f);
-					mesh->position = meshPos;
-
 					// The parent's model matrix is set to the identity
 					glm::mat4x4 matModel = glm::mat4x4(1.0f);
+					mesh->position = meshPos;
 					DrawObject(mesh, matModel, shaderID, ::g_pTextureManager, pVAOManager, mModel_location, mModelInverseTransform_location);
 
-					for (cMeshObject* childObject : mesh->vecChildMeshes)
+					if (portionMaze[y][x] == 'x')
 					{
-						glm::vec3 oldPos = childObject->position;
-						childObject->position += mesh->position - glm::vec3(0,2,0);
-						if (childObject->bIsVisible)
+						for (cMeshObject* childObject : mesh->vecChildMeshes)
 						{
-							glm::mat4x4 matModel = glm::mat4x4(1.0f);
-							DrawObject(childObject, matModel, shaderID, ::g_pTextureManager, pVAOManager, mModel_location, mModelInverseTransform_location);
+							glm::vec3 oldPos = childObject->position;
+							childObject->position += mesh->position;
+							childObject->position.y = 0.f;
+							if (childObject->bIsVisible)
+							{
+								glm::mat4x4 matModel = glm::mat4x4(1.0f);
+								DrawObject(childObject, matModel, shaderID, ::g_pTextureManager, pVAOManager, mModel_location, mModelInverseTransform_location);
+							}
+							childObject->position = oldPos;
 						}
-						childObject->position = oldPos;
 					}
 				}
 			}
@@ -912,9 +905,9 @@ int main(int argc, char* argv[])
 		//    _____           _          __
 		//   | ____|_ __   __| |   ___  / _|  ___  ___ ___ _ __   ___
 		//   |  _| | '_ \ / _` |  / _ \| |_  / __|/ __/ _ \ '_ \ / _ \
-        //   | |___| | | | (_| | | (_) |  _| \__ \ (_|  __/ | | |  __/
-		//   |_____|_| |_|\__,_|  \___/|_|   |___/\___\___|_| |_|\___|
-		//
+		        //   | |___| | | | (_| | | (_) |  _| \__ \ (_|  __/ | | |  __/
+				//   |_____|_| |_|\__,_|  \___/|_|   |___/\___\___|_| |_|\___|
+				//
 		glfwPollEvents();
 
 		ImGui_ImplOpenGL3_NewFrame();
