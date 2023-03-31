@@ -9,6 +9,7 @@ class MazeHelper {
 public:
 	MazeHelper(std::string filename);
 	std::vector<cMeshObject*> getMazeMeshesAt(glm::vec2 position, int size);
+	std::vector<std::vector<char>> getMazeAt(glm::vec2 position, int size);
 	std::vector<std::vector<char>> maze;
 	std::vector<std::vector<cMeshObject*>> mazeMeshes;
 

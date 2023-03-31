@@ -641,13 +641,96 @@ int main(int argc, char* argv[])
 	int increase = 1;
 	//pVAOManager->Load();
 
-	MazeHelper* _mazeHelper = new MazeHelper("maze500.txt");
+	MazeHelper* _mazeHelper = new MazeHelper("maze100.txt");
+	int portionSize = 40.f;
+	//glm::vec2 portionPosition = glm::vec2((int)g_cameraEye.x, (int)g_cameraEye.z);
+	glm::vec2 portionPosition = glm::vec2(0, 0);
+	//	std::vector<cMeshObject*> portionMaze = _mazeHelper->getMazeMeshesAt(portionPosition, portionSize);
 
+	std::vector<cMeshObject*> floorTiles;
+	for (size_t i = 0; i < 1600; i++)
+	{
+		cMeshObject* pFloor = new cMeshObject();
+		pFloor->meshName = "Floor";
+		pFloor->friendlyName = "Floor";
+		pFloor->bUse_RGBA_colour = false;
+		pFloor->position = glm::vec3(0, 0.f, 0);
+		pFloor->setRotationFromEuler(glm::vec3(0));
+		pFloor->isWireframe = false;
+		pFloor->SetUniformScale(0.002f);
+		pFloor->textures[0] = "Dungeons_2_Texture_01_A.bmp";
+		pFloor->textureRatios[0] = 1.0f;
+		floorTiles.push_back(pFloor);
+	}
+	std::vector<cMeshObject*> blockTiles;
+	for (size_t i = 0; i < 1600; i++)
+	{
+		cMeshObject* pFloor = new cMeshObject();
+		pFloor->meshName = "Floor";
+		pFloor->friendlyName = "Floor";
+		pFloor->bUse_RGBA_colour = false;
+		pFloor->position = glm::vec3(0, 1.f, 0);
+		pFloor->setRotationFromEuler(glm::vec3(0));
+		pFloor->isWireframe = false;
+		pFloor->SetUniformScale(0.002f);
+		pFloor->textures[0] = "Dungeons_2_Texture_01_A.bmp";
+		pFloor->textureRatios[0] = 1.0f;
+
+		cMeshObject* pWallLeft = new cMeshObject();
+		pWallLeft->meshName = "Wall";
+		pWallLeft->friendlyName = "WallLeft";
+		pWallLeft->bUse_RGBA_colour = false;
+		pWallLeft->position = glm::vec3(-1.f, 1.f, 0.0f);
+		pWallLeft->setRotationFromEuler(glm::vec3(0.0f, glm::radians(180.f), 0.0f));
+		pWallLeft->isWireframe = false;
+		pWallLeft->SetUniformScale(0.002f);
+		pWallLeft->textures[0] = "Dungeons_2_Texture_01_A.bmp";
+		pWallLeft->textureRatios[0] = 1.0f;
+
+		cMeshObject* pWallRight = new cMeshObject();
+		pWallRight->meshName = "Wall";
+		pWallRight->friendlyName = "WallRight";
+		pWallRight->bUse_RGBA_colour = false;
+		pWallRight->position = glm::vec3(0.f, 1.f, -1.0f);
+		pWallRight->setRotationFromEuler(glm::vec3(0.0f, glm::radians(0.f), 0.0f));
+		pWallRight->isWireframe = false;
+		pWallRight->SetUniformScale(0.002f);
+		pWallRight->textures[0] = "Dungeons_2_Texture_01_A.bmp";
+		pWallRight->textureRatios[0] = 1.0f;
+
+		cMeshObject* pWallTop = new cMeshObject();
+		pWallTop->meshName = "Wall";
+		pWallTop->friendlyName = "WallTop";
+		pWallTop->bUse_RGBA_colour = false;
+		pWallTop->position = glm::vec3(0.f, 1.f, 0.f);
+		pWallTop->setRotationFromEuler(glm::vec3(0.0f, glm::radians(270.f), 0.0f));
+		pWallTop->isWireframe = false;
+		pWallTop->SetUniformScale(0.002f);
+		pWallTop->textures[0] = "Dungeons_2_Texture_01_A.bmp";
+		pWallTop->textureRatios[0] = 1.0f;
+
+		cMeshObject* pWallBottom = new cMeshObject();
+		pWallBottom->meshName = "Wall";
+		pWallBottom->friendlyName = "WallTop";
+		pWallBottom->bUse_RGBA_colour = false;
+		pWallBottom->position = glm::vec3(-1.f, 1.f, -1.f);
+		pWallBottom->setRotationFromEuler(glm::vec3(0.0f, glm::radians(90.f), 0.0f));
+		pWallBottom->isWireframe = false;
+		pWallBottom->SetUniformScale(0.002f);
+		pWallBottom->textures[0] = "Dungeons_2_Texture_01_A.bmp";
+		pWallBottom->textureRatios[0] = 1.0f;
+
+		pFloor->vecChildMeshes.push_back(pWallLeft);
+		pFloor->vecChildMeshes.push_back(pWallRight);
+		pFloor->vecChildMeshes.push_back(pWallTop);
+		pFloor->vecChildMeshes.push_back(pWallBottom);
+		blockTiles.push_back(pFloor);
+	}
+	std::vector<std::vector<char>> portionMaze;
 	while (!glfwWindowShouldClose(window))
 	{
-		//int portionSize = 20.f;
-		//glm::vec2 portionPosition = glm::vec2((int)g_cameraEye.x, (int)g_cameraEye.z);
-		//std::vector<cMeshObject*> portionMaze = _mazeHelper->getMazeMeshesAt(portionPosition, portionSize);
+		portionPosition = glm::vec2((int)g_cameraEye.x, (int)g_cameraEye.z);
+		portionMaze = _mazeHelper->getMazeAt(portionPosition, portionSize);
 		::g_pTheLightManager->CopyLightInformationToShader(shaderID);
 		//	pBrain->Update(0.1f);
 		duration = (std::clock() - deltaTime) / (double)CLOCKS_PER_SEC;
@@ -706,27 +789,72 @@ int main(int argc, char* argv[])
 		glUniformMatrix4fv(mView_location, 1, GL_FALSE, glm::value_ptr(matView));
 		glUniformMatrix4fv(mProjection_location, 1, GL_FALSE, glm::value_ptr(matProjection));
 
-		for (cMeshObject* mesh : portionMaze)
+		int floorIndex = 0;
+		int wallIndex = 0;
+		for (size_t y = 0; y < portionSize - 1; y++)
 		{
-			if (mesh != nullptr && mesh->bIsVisible)
+			for (size_t x = 0; x < portionSize - 1; x++)
 			{
-				// The parent's model matrix is set to the identity
-				glm::mat4x4 matModel = glm::mat4x4(1.0f);
-				DrawObject(mesh, matModel, shaderID, ::g_pTextureManager, pVAOManager, mModel_location, mModelInverseTransform_location);
-
-				for (cMeshObject* childObject : mesh->vecChildMeshes)
+				cMeshObject* mesh;
+				if (portionMaze[y][x] == 'o')
 				{
-					glm::vec3 oldPos = childObject->position;
-					childObject->position += mesh->position - glm::vec3(0.f, 10.f, 0.f);
-					if (childObject->bIsVisible)
+					mesh = floorTiles[floorIndex++];
+				}
+				else if (portionMaze[y][x] == 'x')
+				{
+					mesh = blockTiles[wallIndex++];
+					mesh->position.y + 1.f;
+				}
+				else
+				{
+					mesh = nullptr;
+				}
+				if (mesh != nullptr && mesh->bIsVisible)
+				{
+					// Set the position of the mesh based on the position of the portion in the maze
+					glm::vec3 meshPos = glm::vec3((portionPosition.x - portionSize / 2 + x) * 1.f, mesh->position.y, (portionPosition.y - portionSize / 2 + y) * 1.f);
+					mesh->position = meshPos;
+
+					// The parent's model matrix is set to the identity
+					glm::mat4x4 matModel = glm::mat4x4(1.0f);
+					DrawObject(mesh, matModel, shaderID, ::g_pTextureManager, pVAOManager, mModel_location, mModelInverseTransform_location);
+
+					for (cMeshObject* childObject : mesh->vecChildMeshes)
 					{
-						glm::mat4x4 matModel = glm::mat4x4(1.0f);
-						DrawObject(childObject, matModel, shaderID, ::g_pTextureManager, pVAOManager, mModel_location, mModelInverseTransform_location);
+						glm::vec3 oldPos = childObject->position;
+						childObject->position += mesh->position - glm::vec3(0,2,0);
+						if (childObject->bIsVisible)
+						{
+							glm::mat4x4 matModel = glm::mat4x4(1.0f);
+							DrawObject(childObject, matModel, shaderID, ::g_pTextureManager, pVAOManager, mModel_location, mModelInverseTransform_location);
+						}
+						childObject->position = oldPos;
 					}
-					childObject->position = oldPos;
 				}
 			}
 		}
+
+		//for (cMeshObject* mesh : portionMaze)
+		//{
+		//	if (mesh != nullptr && mesh->bIsVisible)
+		//	{
+		//		// The parent's model matrix is set to the identity
+		//		glm::mat4x4 matModel = glm::mat4x4(1.0f);
+		//		DrawObject(mesh, matModel, shaderID, ::g_pTextureManager, pVAOManager, mModel_location, mModelInverseTransform_location);
+
+		//		for (cMeshObject* childObject : mesh->vecChildMeshes)
+		//		{
+		//			glm::vec3 oldPos = childObject->position;
+		//			childObject->position += mesh->position - glm::vec3(0.f, 10.f, 0.f);
+		//			if (childObject->bIsVisible)
+		//			{
+		//				glm::mat4x4 matModel = glm::mat4x4(1.0f);
+		//				DrawObject(childObject, matModel, shaderID, ::g_pTextureManager, pVAOManager, mModel_location, mModelInverseTransform_location);
+		//			}
+		//			childObject->position = oldPos;
+		//		}
+		//	}
+		//}
 		for (std::vector< cMeshObject* >::iterator itCurrentMesh = g_pMeshObjects.begin();
 			itCurrentMesh != g_pMeshObjects.end();
 			itCurrentMesh++)
@@ -743,6 +871,8 @@ int main(int argc, char* argv[])
 				pVAOManager, mModel_location, mModelInverseTransform_location);
 			for (cMeshObject* childObject : pCurrentMeshObject->vecChildMeshes)
 			{
+				glm::vec3 oldPos = childObject->position;
+				childObject->position += pCurrentMeshObject->position;
 				if (!childObject->bIsVisible)
 					continue;
 				glm::mat4x4 matModel = glm::mat4x4(1.0f);
@@ -750,6 +880,7 @@ int main(int argc, char* argv[])
 					matModel,
 					shaderID, ::g_pTextureManager,
 					pVAOManager, mModel_location, mModelInverseTransform_location);
+				childObject->position = oldPos;
 			}
 		}
 
