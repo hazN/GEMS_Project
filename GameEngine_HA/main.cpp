@@ -642,9 +642,7 @@ int main(int argc, char* argv[])
 	//pVAOManager->Load();
 
 	MazeHelper* _mazeHelper = new MazeHelper("maze100.txt");
-	int portionSize = 30.f;
 	//glm::vec2 portionPosition = glm::vec2((int)g_cameraEye.x, (int)g_cameraEye.z);
-	glm::vec2 portionPosition = glm::vec2(0, 0);
 	//	std::vector<cMeshObject*> portionMaze = _mazeHelper->getMazeMeshesAt(portionPosition, portionSize);
 
 	std::vector<cMeshObject*> blockTiles;
@@ -712,9 +710,12 @@ int main(int argc, char* argv[])
 		blockTiles.push_back(pFloor);
 	}
 	std::vector<std::vector<char>> portionMaze;
+	int portionSize = 20.f;
+	glm::vec2 portionPosition = glm::vec2(0, 0);
 	while (!glfwWindowShouldClose(window))
 	{
-		portionPosition = glm::vec2((int)g_cameraEye.x, (int)g_cameraEye.z);
+		glm::vec3 portion = (::g_cameraEye + 10.f * ::g_cameraTarget);
+		portionPosition = glm::vec2(portion.x, portion.z);
 		portionMaze = _mazeHelper->getMazeAt(portionPosition, portionSize);
 		::g_pTheLightManager->CopyLightInformationToShader(shaderID);
 		//	pBrain->Update(0.1f);
