@@ -13,6 +13,7 @@
 #include "PhysicsEngine.h"
 #include "cVAOManager/cVAOManager.h"
 #include "PhysicsSystem.h"
+#include "MazeHelper.h"
 // extern means the variable isn't actually here...
 // ...it's somewhere else (in a .cpp file somewhere)
 extern GLFWwindow* window;

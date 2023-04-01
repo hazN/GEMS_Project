@@ -36,11 +36,17 @@
 #include "imgui/imgui_impl_opengl3.h"
 #include "cBasicTextureManager.h"
 #include "GenerateDungeon.h"
-#include "MazeHelper.h"
+#include "MazeHelper.h"#include <Windows.h>
+#include <assert.h>
+#include "Beholder.h"
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#include <assert.h>
 glm::vec3 g_cameraEye = glm::vec3(0.0, 15, -100.0f);
 glm::vec3 g_cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
 cBasicTextureManager* g_pTextureManager = NULL;
 cCommandScheduler* g_scheduler = new cCommandScheduler;
+DWORD WINAPI UpdateBeholderThread(LPVOID pVOIDBeholder);
 // Call back signatures here
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
@@ -712,24 +718,29 @@ int main(int argc, char* argv[])
 	std::vector<std::vector<char>> portionMaze;
 	int portionSize = 20.f;
 	glm::vec2 portionPosition = glm::vec2(0, 0);
-	for (size_t i = 0; i < 100; i++)
+	const int NUM_BEHOLDERS = 5;
+	for (size_t i = 0; i < NUM_BEHOLDERS; i++)
 	{
 		glm::vec2 pos = _mazeHelper->getRandomMazeCell();
-		cMeshObject* pBeholder = new cMeshObject();
-		pBeholder->meshName = "Beholder";
-		pBeholder->friendlyName = "Beholder1";
-		pBeholder->bUse_RGBA_colour = false;      // Use file colours    pTerrain->RGBA_colour = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
-		pBeholder->specular_colour_and_power = glm::vec4(1.0f, 0.0f, 0.0f, 1000.0f);
-		pBeholder->position = glm::vec3(pos.y - 0.5, 0.5f, pos.x - 0.5);
-		pBeholder->setRotationFromEuler(glm::vec3(0));
-		pBeholder->isWireframe = false;
-		pBeholder->SetUniformScale(0.2f);
-		pBeholder->textures[0] = "Beholder_Base_color.bmp";
-		pBeholder->textureRatios[0] = 1.0f;
-		pBeholder->textureRatios[1] = 1.0f;
-		pBeholder->textureRatios[2] = 1.0f;
-		pBeholder->textureRatios[3] = 1.0f;
-		g_pMeshObjects.push_back(pBeholder);
+		Beholder* pBeholder = new Beholder(i, pos, _mazeHelper);
+		g_pMeshObjects.push_back(pBeholder->mesh);
+
+		// The {0} is a short cut if it's integer values
+		// (otherwise you could use a loop or memset)
+		LPDWORD lpThreadId = 0;
+		HANDLE hThread = 0;
+
+		sBeholderThreadData* pBeholderData = new sBeholderThreadData();
+		pBeholderData->pTheBeholder = pBeholder;
+
+		hThread =
+			CreateThread(NULL,				// Security attributes
+				0,					// Use default stack size
+				UpdateBeholderThread,	// Address of the function we are going to call
+				(void*)pBeholderData,			// Please wait a moment
+				0, // 0 or CREATE_SUSPENDED
+				lpThreadId);
+
 	}
 	while (!glfwWindowShouldClose(window))
 	{
@@ -1064,4 +1075,27 @@ void DrawConcentricDebugLightObjects(void)
 		pDebugSphere_5->position = glm::vec3(::g_pTheLightManager->vecTheLights[currentLight].position);
 	}
 	return;
+}
+
+DWORD WINAPI UpdateBeholderThread(LPVOID pVOIDBeholder)
+{
+	std::cout << "Starting the beholder thread" << std::endl;
+	sBeholderThreadData* pBeholder = (sBeholderThreadData*)(pVOIDBeholder);
+
+	while (pBeholder->pTheBeholder->isAlive && !pBeholder->bExitThread)
+	{
+		if (!pBeholder->bSuspendThread)
+		{
+			pBeholder->pTheBeholder->Update();
+			Sleep(0);   // Release this thread if needed
+		}
+		else
+		{
+			// Put thread to sleep for X ms
+			Sleep(pBeholder->suspendTime_ms);
+		}
+	}
+
+	std::cout << "Exiting the beholder thread" << std::endl;
+	return 0;
 }

@@ -3,10 +3,12 @@
 #include <vector>
 #include <string>
 #include "globalThings.h"
-class cMeshObject;
+#include "cMeshObject.h";
 
 class MazeHelper {
 public:
+	MazeHelper() = default;
+	~MazeHelper() = default;
 	MazeHelper(std::string filename);
 	std::vector<cMeshObject*> getMazeMeshesAt(glm::vec2 position, int size);
 	std::vector<std::vector<char>> getMazeAt(glm::vec2 position, int size);
