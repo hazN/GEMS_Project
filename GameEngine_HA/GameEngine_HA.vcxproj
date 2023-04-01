@@ -148,6 +148,7 @@
     <ClCompile Include="AIBrain.cpp" />
     <ClCompile Include="AnimationEvents.cpp" />
     <ClCompile Include="AnimationManager.cpp" />
+    <ClCompile Include="Beholder.cpp" />
     <ClCompile Include="C24BitBMPpixel.cpp" />
     <ClCompile Include="CarAnimations.cpp" />
     <ClCompile Include="cBasicTextureManager.cpp" />
@@ -196,6 +197,7 @@
     <ClInclude Include="Animation.h" />
     <ClInclude Include="AnimationEvents.h" />
     <ClInclude Include="AnimationManager.h" />
+    <ClInclude Include="Beholder.h" />
     <ClInclude Include="BoundingBox.h" />
     <ClInclude Include="C24BitBMPpixel.h" />
     <ClInclude Include="CarAnimations.h" />

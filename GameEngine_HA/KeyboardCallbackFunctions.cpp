@@ -15,7 +15,7 @@ extern glm::vec3 g_cameraTarget;// = glm::vec3(0.0f, 0.0f, 0.0f);
 
 bool bEnableDebugLightingObjects = true;
 float OBJECT_MOVE_SPEED = 0.1f;
-float CAMERA_MOVE_SPEED = 5.f;
+float CAMERA_MOVE_SPEED = 2.f;
 float LIGHT_MOVE_SPEED = 0.1f;
 float PLAYER_MOVE_SPEED = 15.f;
 bool wireFrame = true;

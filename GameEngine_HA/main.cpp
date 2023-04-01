@@ -525,7 +525,7 @@ int main(int argc, char* argv[])
 	pBeholder->position = glm::vec3(0.f, 5.f, 0.f);
 	pBeholder->setRotationFromEuler(glm::vec3(0));
 	pBeholder->isWireframe = false;
-	pBeholder->SetUniformScale(1.f);
+	pBeholder->SetUniformScale(0.2f);
 	pBeholder->textures[0] = "Beholder_Base_color.bmp";
 	pBeholder->textureRatios[0] = 1.0f;
 	pBeholder->textureRatios[1] = 1.0f;
@@ -646,7 +646,7 @@ int main(int argc, char* argv[])
 	//	std::vector<cMeshObject*> portionMaze = _mazeHelper->getMazeMeshesAt(portionPosition, portionSize);
 
 	std::vector<cMeshObject*> blockTiles;
-	for (size_t i = 0; i < 900; i++)
+	for (size_t i = 0; i < 400; i++)
 	{
 		cMeshObject* pFloor = new cMeshObject();
 		pFloor->meshName = "Floor";
@@ -712,10 +712,30 @@ int main(int argc, char* argv[])
 	std::vector<std::vector<char>> portionMaze;
 	int portionSize = 20.f;
 	glm::vec2 portionPosition = glm::vec2(0, 0);
+	for (size_t i = 0; i < 100; i++)
+	{
+		glm::vec2 pos = _mazeHelper->getRandomMazeCell();
+		cMeshObject* pBeholder = new cMeshObject();
+		pBeholder->meshName = "Beholder";
+		pBeholder->friendlyName = "Beholder1";
+		pBeholder->bUse_RGBA_colour = false;      // Use file colours    pTerrain->RGBA_colour = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
+		pBeholder->specular_colour_and_power = glm::vec4(1.0f, 0.0f, 0.0f, 1000.0f);
+		pBeholder->position = glm::vec3(pos.y - 0.5, 0.5f, pos.x - 0.5);
+		pBeholder->setRotationFromEuler(glm::vec3(0));
+		pBeholder->isWireframe = false;
+		pBeholder->SetUniformScale(0.2f);
+		pBeholder->textures[0] = "Beholder_Base_color.bmp";
+		pBeholder->textureRatios[0] = 1.0f;
+		pBeholder->textureRatios[1] = 1.0f;
+		pBeholder->textureRatios[2] = 1.0f;
+		pBeholder->textureRatios[3] = 1.0f;
+		g_pMeshObjects.push_back(pBeholder);
+	}
 	while (!glfwWindowShouldClose(window))
 	{
 		glm::vec3 portion = (::g_cameraEye + 10.f * ::g_cameraTarget);
-		portionPosition = glm::vec2(portion.x, portion.z);
+		portionPosition = glm::vec2((int)(portion.x + ::g_cameraTarget.x), (int)(portion.z + ::g_cameraTarget.z));
+		//portionPosition = glm::floor(glm::vec2(::g_cameraEye.x, ::g_cameraEye.z));
 		portionMaze = _mazeHelper->getMazeAt(portionPosition, portionSize);
 		::g_pTheLightManager->CopyLightInformationToShader(shaderID);
 		//	pBrain->Update(0.1f);
@@ -777,9 +797,9 @@ int main(int argc, char* argv[])
 
 		int floorIndex = 0;
 		int wallIndex = 0;
-		for (size_t y = 0; y < portionSize - 1; y++)
+		for (size_t y = 0; y < portionSize; y++)
 		{
-			for (size_t x = 0; x < portionSize - 1; x++)
+			for (size_t x = 0; x < portionSize; x++)
 			{
 				cMeshObject* mesh;
 				glm::vec3 meshPos;

@@ -159,3 +159,13 @@ std::vector<std::vector<char>> MazeHelper::getMazeAt(glm::vec2 position, int siz
 
     return mazeAt;
 }
+glm::vec2 MazeHelper::getRandomMazeCell()
+{
+    int y, x;
+    do {
+        y = rand() % maze.size();
+        x = rand() % maze[y].size();
+    } while (maze[y][x] != 'o');
+
+    return glm::vec2(y, x);
+}
