@@ -2,9 +2,9 @@ assets/models/terrain.ply
 Terrain
 assets/models/UV_Sphere_for_Skybox_inverted_Normals_xyz_uv_n_rgba.ply
 Skybox_Sphere
-assets/models/Floors/SM_Env_Dwarf_Floor_01.ply
+assets/models/Floors/SM_Env_Dwarf_Floor_20.ply
 Floor
-assets/models/Walls/SM_Env_Dwarf_Wall_01.ply
+assets/models/Walls/SM_Env_Dwarf_Wall_06.ply
 Wall
 assets/models/Walls/SM_Env_Dwarf_Wall_Archway_01.ply
 Door1

@@ -646,7 +646,6 @@ int main(int argc, char* argv[])
 	//bool increase = true;
 	int increase = 1;
 	//pVAOManager->Load();
-
 	MazeHelper* _mazeHelper = new MazeHelper("maze100.txt");
 	//glm::vec2 portionPosition = glm::vec2((int)g_cameraEye.x, (int)g_cameraEye.z);
 	//	std::vector<cMeshObject*> portionMaze = _mazeHelper->getMazeMeshesAt(portionPosition, portionSize);
@@ -718,12 +717,17 @@ int main(int argc, char* argv[])
 	std::vector<std::vector<char>> portionMaze;
 	int portionSize = 20.f;
 	glm::vec2 portionPosition = glm::vec2(0, 0);
-	const int NUM_BEHOLDERS = 5;
+	const int NUM_BEHOLDERS = 50;
+	std::vector<Beholder*> pTheBeholders;
+	std::vector<glm::vec2> portionToDraw;
 	for (size_t i = 0; i < NUM_BEHOLDERS; i++)
 	{
 		glm::vec2 pos = _mazeHelper->getRandomMazeCell();
+		if (i == 0)
+			pos = glm::vec2(0, 0);
 		Beholder* pBeholder = new Beholder(i, pos, _mazeHelper);
-		g_pMeshObjects.push_back(pBeholder->mesh);
+		pTheBeholders.push_back(pBeholder);
+		//g_pMeshObjects.push_back(pBeholder->mesh);
 
 		// The {0} is a short cut if it's integer values
 		// (otherwise you could use a loop or memset)
@@ -836,6 +840,7 @@ int main(int argc, char* argv[])
 				if (mesh != nullptr && mesh->bIsVisible)
 				{
 					// The parent's model matrix is set to the identity
+					
 					glm::mat4x4 matModel = glm::mat4x4(1.0f);
 					mesh->position = meshPos;
 					DrawObject(mesh, matModel, shaderID, ::g_pTextureManager, pVAOManager, mModel_location, mModelInverseTransform_location);
@@ -855,6 +860,22 @@ int main(int argc, char* argv[])
 							childObject->position = oldPos;
 						}
 					}
+				}
+			}
+		}
+		for (Beholder* beholder : pTheBeholders)
+		{
+			if (beholder->mesh != nullptr && beholder->mesh->bIsVisible)
+			{
+				glm::vec2 beholderPos = glm::vec2(beholder->position.x, beholder->position.y);
+				glm::vec2 portionMin = portionPosition - glm::vec2(portionSize / 2);
+				glm::vec2 portionMax = portionPosition + glm::vec2(portionSize / 2);
+
+				if (beholderPos.x >= portionMin.x && beholderPos.x <= portionMax.x &&
+					beholderPos.y >= portionMin.y && beholderPos.y <= portionMax.y)
+				{
+					glm::mat4x4 matModel = glm::mat4x4(1.0f);
+					DrawObject(beholder->mesh, matModel, shaderID, ::g_pTextureManager, pVAOManager, mModel_location, mModelInverseTransform_location);
 				}
 			}
 		}

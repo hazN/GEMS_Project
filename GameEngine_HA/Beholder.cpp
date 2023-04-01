@@ -1,6 +1,7 @@
 #include "Beholder.h"
 #include <Windows.h>
 #include <iostream>
+#include "quaternion_utils.h"
 eDirection turnAround(eDirection direction);
 
 Beholder::Beholder(int id, glm::vec2 position, MazeHelper* _mazeHelper)
@@ -31,20 +32,25 @@ Beholder::Beholder(int id, glm::vec2 position, MazeHelper* _mazeHelper)
 
 void Beholder::Update()
 {
-	// Explore, aka find the next tile to move to
-	Explore();
-	glm::vec3 targetPos = glm::vec3(this->position.x - 0.5f, 0.5f, this->position.y - 0.5f);
-
-	// Slowly move towards tile
-	while (this->mesh->position != targetPos)
+	glm::vec3 targetPos = glm::vec3(position.y - 0.5f, 0.5f, position.x - 0.5f);
+	if (this->mesh->position != targetPos)
 	{
+		// Move towards the target position
 		glm::vec3 dir = glm::normalize(targetPos - this->mesh->position);
-		float distance = glm::distance(targetPos, this->mesh->position);
+		this->mesh->position += dir * 0.1f; // adjust the speed here
+		glm::quat rotateDir = q_utils::LookAt(-dir, glm::vec3(0, 1, 0));
+		this->mesh->qRotation = q_utils::RotateTowards(this->mesh->qRotation, rotateDir, 3.14f * 0.05f);
 
-		this->mesh->position += dir * (distance / 10.0f);
-
-		Sleep(10);
+		// Force position once distance is close enough
+		if (glm::length(this->mesh->position - targetPos) < 0.1f)
+			this->mesh->position = targetPos;
 	}
+	else
+	{
+		// Explore to the next cell if we've reached the target position
+		Explore();
+	}
+	Sleep(50);
 }
 
 void Beholder::Explore()
