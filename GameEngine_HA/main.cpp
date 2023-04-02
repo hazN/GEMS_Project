@@ -717,14 +717,12 @@ int main(int argc, char* argv[])
 	std::vector<std::vector<char>> portionMaze;
 	int portionSize = 20.f;
 	glm::vec2 portionPosition = glm::vec2(0, 0);
-	const int NUM_BEHOLDERS = 50;
+	const int NUM_BEHOLDERS = 100;
 	std::vector<Beholder*> pTheBeholders;
 	std::vector<glm::vec2> portionToDraw;
 	for (size_t i = 0; i < NUM_BEHOLDERS; i++)
 	{
 		glm::vec2 pos = _mazeHelper->getRandomMazeCell();
-		if (i == 0)
-			pos = glm::vec2(0, 0);
 		Beholder* pBeholder = new Beholder(i, pos, _mazeHelper);
 		pTheBeholders.push_back(pBeholder);
 		//g_pMeshObjects.push_back(pBeholder->mesh);
@@ -871,14 +869,19 @@ int main(int argc, char* argv[])
 				glm::vec2 portionMin = portionPosition - glm::vec2(portionSize / 2);
 				glm::vec2 portionMax = portionPosition + glm::vec2(portionSize / 2);
 
-				if (beholderPos.x >= portionMin.x && beholderPos.x <= portionMax.x &&
-					beholderPos.y >= portionMin.y && beholderPos.y <= portionMax.y)
+				//std::cout << "Beholder position: " << beholderPos.x << ", " << beholderPos.y << std::endl;
+				//std::cout << "Portion min: " << portionMin.x << ", " << portionMin.y << std::endl;
+				//std::cout << "Portion max: " << portionMax.x << ", " << portionMax.y << std::endl;
+
+				if (beholderPos.y >= portionMin.x && beholderPos.y <= portionMax.x &&
+					beholderPos.x >= portionMin.y && beholderPos.x <= portionMax.y)
 				{
 					glm::mat4x4 matModel = glm::mat4x4(1.0f);
 					DrawObject(beholder->mesh, matModel, shaderID, ::g_pTextureManager, pVAOManager, mModel_location, mModelInverseTransform_location);
 				}
 			}
 		}
+
 
 		//for (cMeshObject* mesh : portionMaze)
 		//{
