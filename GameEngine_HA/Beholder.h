@@ -13,6 +13,7 @@ public:
 
     void Update();
     void Explore();
+    void LineOfSight();
     void Chase();
     void Attack(Beholder* other); 
 
@@ -21,7 +22,8 @@ public:
     cMeshObject* mesh;
     glm::vec2 position;
     bool isAlive; 
-    std::vector<Beholder*>* allBeholders; 
+    bool exitThread; 
+    std::vector<Beholder*> *allBeholders; 
     MazeHelper* _mazeHelper;
     Beholder* target;
 };

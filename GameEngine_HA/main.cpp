@@ -717,14 +717,23 @@ int main(int argc, char* argv[])
 	std::vector<std::vector<char>> portionMaze;
 	int portionSize = 20.f;
 	glm::vec2 portionPosition = glm::vec2(0, 0);
-	const int NUM_BEHOLDERS = 100;
-	std::vector<Beholder*> pTheBeholders;
+	const int NUM_BEHOLDERS = 800;
+	std::vector<Beholder*> *pTheBeholders = new std::vector<Beholder*>();
 	std::vector<glm::vec2> portionToDraw;
 	for (size_t i = 0; i < NUM_BEHOLDERS; i++)
 	{
 		glm::vec2 pos = _mazeHelper->getRandomMazeCell();
+		if (i == 0)
+		{
+			pos = glm::vec2(1, 1);
+		}
+		if (i == 1)
+		{
+			pos = glm::vec2(1, 3);
+		}
 		Beholder* pBeholder = new Beholder(i, pos, _mazeHelper);
-		pTheBeholders.push_back(pBeholder);
+		pTheBeholders->push_back(pBeholder);
+		pBeholder->allBeholders = pTheBeholders;
 		//g_pMeshObjects.push_back(pBeholder->mesh);
 
 		// The {0} is a short cut if it's integer values
@@ -861,7 +870,7 @@ int main(int argc, char* argv[])
 				}
 			}
 		}
-		for (Beholder* beholder : pTheBeholders)
+		for (Beholder* beholder : *pTheBeholders)
 		{
 			if (beholder->mesh != nullptr && beholder->mesh->bIsVisible)
 			{
@@ -1106,7 +1115,7 @@ DWORD WINAPI UpdateBeholderThread(LPVOID pVOIDBeholder)
 	std::cout << "Starting the beholder thread" << std::endl;
 	sBeholderThreadData* pBeholder = (sBeholderThreadData*)(pVOIDBeholder);
 
-	while (pBeholder->pTheBeholder->isAlive && !pBeholder->bExitThread)
+	while (!pBeholder->pTheBeholder->exitThread && !pBeholder->bExitThread)
 	{
 		if (!pBeholder->bSuspendThread)
 		{
