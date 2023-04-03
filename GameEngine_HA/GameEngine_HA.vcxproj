@@ -185,6 +185,7 @@
     <ClCompile Include="MazeHelper.cpp" />
     <ClCompile Include="MoveTo.cpp" />
     <ClCompile Include="OrientTo.cpp" />
+    <ClCompile Include="Pathfinder.cpp" />
     <ClCompile Include="PhysicsEngine.cpp" />
     <ClCompile Include="PhysicsMath.cpp" />
     <ClCompile Include="PhysicsObject.cpp" />
@@ -238,6 +239,7 @@
     <ClInclude Include="MazeHelper.h" />
     <ClInclude Include="MoveTo.h" />
     <ClInclude Include="OrientTo.h" />
+    <ClInclude Include="Pathfinder.h" />
     <ClInclude Include="PhysicsEngine.h" />
     <ClInclude Include="PhysicsMath.h" />
     <ClInclude Include="PhysicsObject.h" />
