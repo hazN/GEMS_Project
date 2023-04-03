@@ -717,20 +717,12 @@ int main(int argc, char* argv[])
 	std::vector<std::vector<char>> portionMaze;
 	int portionSize = 20.f;
 	glm::vec2 portionPosition = glm::vec2(0, 0);
-	const int NUM_BEHOLDERS = 800;
+	const int NUM_BEHOLDERS = 1000;
 	std::vector<Beholder*> *pTheBeholders = new std::vector<Beholder*>();
 	std::vector<glm::vec2> portionToDraw;
 	for (size_t i = 0; i < NUM_BEHOLDERS; i++)
 	{
 		glm::vec2 pos = _mazeHelper->getRandomMazeCell();
-		if (i == 0)
-		{
-			pos = glm::vec2(1, 1);
-		}
-		if (i == 1)
-		{
-			pos = glm::vec2(1, 3);
-		}
 		Beholder* pBeholder = new Beholder(i, pos, _mazeHelper);
 		pTheBeholders->push_back(pBeholder);
 		pBeholder->allBeholders = pTheBeholders;

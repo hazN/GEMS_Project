@@ -35,9 +35,18 @@ void Beholder::Update()
 {
 	if (isAlive)
 	{
+		// Attack if close enough
+		if (target != nullptr)
+		{
+			if (glm::length(target->position - position) < 0.5f)
+			{
+				Attack(target);
+				target = nullptr;
+				return;
+			}
+		}
 
 		LineOfSight();
-
 		glm::vec3 targetPos = glm::vec3(position.y - 0.5f, 0.5f, position.x - 0.5f);
 		if (this->mesh->position != targetPos)
 		{
@@ -70,7 +79,7 @@ void Beholder::Update()
 
 		// Rotate and scale down
 		float rotation_speed = 10.f;  
-		float scale_speed = 0.001f;   
+		float scale_speed = 0.000001f;   
 		while (mesh->scaleXYZ.x > 0.05f) {
 			// Rotate
 			glm::quat rotateDir = q_utils::LookAt(glm::vec3(position.x, 10.f, position.y), glm::vec3(0, 1, 0));
@@ -173,17 +182,20 @@ void Beholder::LineOfSight()
 		positionToCheck.y >= 0 && positionToCheck.y < _mazeHelper->maze[0].size())
 	{
 		// Check if the current tile is a wall
-		if (_mazeHelper->maze[positionToCheck.y][positionToCheck.x] == 'x')
+		if (_mazeHelper->maze[positionToCheck.x][positionToCheck.y] == 'x')
 			break;
 
 		// Check if a beholder is in the open tile
 		for (Beholder* beholder : *allBeholders)
 		{
-			if (beholder != this && beholder->position == positionToCheck && beholder->isAlive)
+			if (beholder != nullptr)
 			{
-				// Change target to the beholder if it's in line of sight
-				target = beholder;
-				return;
+				if (beholder != this && beholder->position == positionToCheck && beholder->isAlive)
+				{
+					// Change target to the beholder if it's in line of sight
+					target = beholder;
+					return;
+				}
 			}
 		}
 
@@ -194,51 +206,73 @@ void Beholder::LineOfSight()
 
 void Beholder::Chase()
 {
-	if (target == nullptr || target->position != target->position) {
+	glm::vec2 nextPos;
+	std::vector<eDirection> possibleDirections;
+
+	// Check the potential directions
+	if (target->position.x > position.x)
+	{
+		if (_mazeHelper->maze[position.x + 1][position.y] != 'x')
+			possibleDirections.push_back(DIR_DOWN);
+	}
+	else if (target->position.x < position.x)
+	{
+		if (_mazeHelper->maze[position.x - 1][position.y] != 'x')
+			possibleDirections.push_back(DIR_UP);
+	}
+	if (target->position.y > position.y)
+	{
+		if (_mazeHelper->maze[position.x][position.y + 1] != 'x')
+			possibleDirections.push_back(DIR_RIGHT);
+	}
+	else if (target->position.y < position.y)
+	{
+		if (_mazeHelper->maze[position.x][position.y - 1] != 'x')
+			possibleDirections.push_back(DIR_LEFT);
+	}
+	// If there are no valid directions, just explore instead
+	if (possibleDirections.empty())
+	{
+		Explore();
 		return;
 	}
-
-	// Determine the direction to move in
-	glm::vec2 dir = glm::vec2(target->position.x - this->position.x, target->position.y - this->position.y);
-
-	// Check if the beholder is adjacent to the target
-	if (glm::length(dir) <= 1.1f)
-	{
-		// Attack the target
-		Attack(target);
-		target = nullptr;
-	}
+	// Otherwise move in the direction closest to the target
 	else
 	{
-		// Check if theres a wall in the way
-		glm::vec2 dir;
-		switch (direction)
+		float minDistance = -1.f;
+		for (eDirection dir : possibleDirections)
 		{
-		case DIR_UP:
-			dir = glm::vec2(-1.f, 0.f);
-			break;
-		case DIR_DOWN:
-			dir = glm::vec2(1.f, 0.f);
-			break;
-		case DIR_LEFT:
-			dir = glm::vec2(0.f, -1.f);
-			break;
-		case DIR_RIGHT:
-			dir = glm::vec2(0.f, 1.f);
-			break;
-		case DIR_NONE:
-			return;
-		default:
-			break;
+			switch (dir)
+			{
+			case DIR_UP:
+				nextPos = position + glm::vec2(-1.f, 0.f);
+				break;
+			case DIR_DOWN:
+				nextPos = position + glm::vec2(1.f, 0.f);
+				break;
+			case DIR_LEFT:
+				nextPos = position + glm::vec2(0.f, -1.f);
+				break;
+			case DIR_RIGHT:
+				nextPos = position + glm::vec2(0.f, 1.f);
+				break;
+			default:
+				break;
+			}
+			float distance = glm::length(nextPos - target->position);
+			if (minDistance < 0.f || distance < minDistance)
+			{
+				minDistance = distance;
+				direction = dir;
+			}
 		}
-		glm::vec2 targetTile = glm::vec2(position) + dir;
-		if (_mazeHelper->maze[targetTile.y][targetTile.x] == 'o')
-		{
-			// Move to the next tile
-			position += dir;
-		}
+		position = nextPos;
 	}
 }
+
+
+
+
 
 void Beholder::Attack(Beholder* other)
 {
