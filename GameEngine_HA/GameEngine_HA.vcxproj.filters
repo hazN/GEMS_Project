@@ -207,9 +207,6 @@
     <ClCompile Include="Beholder.cpp">
       <Filter>Maze</Filter>
     </ClCompile>
-    <ClCompile Include="Pathfinder.cpp">
-      <Filter>Maze</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cVAOManager\sModelDrawInfo.h">
@@ -369,9 +366,6 @@
       <Filter>Maze</Filter>
     </ClInclude>
     <ClInclude Include="Beholder.h">
-      <Filter>Maze</Filter>
-    </ClInclude>
-    <ClInclude Include="Pathfinder.h">
       <Filter>Maze</Filter>
     </ClInclude>
   </ItemGroup>

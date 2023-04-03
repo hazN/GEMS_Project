@@ -47,6 +47,7 @@ glm::vec3 g_cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
 cBasicTextureManager* g_pTextureManager = NULL;
 cCommandScheduler* g_scheduler = new cCommandScheduler;
 DWORD WINAPI UpdateBeholderThread(LPVOID pVOIDBeholder);
+
 // Call back signatures here
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
@@ -714,6 +715,9 @@ int main(int argc, char* argv[])
 		pFloor->vecChildMeshes.push_back(pWallBottom);
 		blockTiles.push_back(pFloor);
 	}
+	// Create the path by splitting it among 8 threads
+	//ThreadPathNodes(_mazeHelper, pathfinder, 16);
+
 	std::vector<std::vector<char>> portionMaze;
 	int portionSize = 20.f;
 	glm::vec2 portionPosition = glm::vec2(0, 0);

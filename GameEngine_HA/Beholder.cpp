@@ -206,73 +206,41 @@ void Beholder::LineOfSight()
 
 void Beholder::Chase()
 {
-	glm::vec2 nextPos;
-	std::vector<eDirection> possibleDirections;
+	int dy = (int)std::round(target->position.y - position.y);
+	int dx = (int)std::round(target->position.x - position.x);
 
-	// Check the potential directions
-	if (target->position.x > position.x)
+	if (std::abs(dy) > std::abs(dx))
 	{
-		if (_mazeHelper->maze[position.x + 1][position.y] != 'x')
-			possibleDirections.push_back(DIR_DOWN);
+		if (dy > 0)
+			direction = DIR_DOWN;
+		else
+			direction = DIR_UP;
 	}
-	else if (target->position.x < position.x)
-	{
-		if (_mazeHelper->maze[position.x - 1][position.y] != 'x')
-			possibleDirections.push_back(DIR_UP);
-	}
-	if (target->position.y > position.y)
-	{
-		if (_mazeHelper->maze[position.x][position.y + 1] != 'x')
-			possibleDirections.push_back(DIR_RIGHT);
-	}
-	else if (target->position.y < position.y)
-	{
-		if (_mazeHelper->maze[position.x][position.y - 1] != 'x')
-			possibleDirections.push_back(DIR_LEFT);
-	}
-	// If there are no valid directions, just explore instead
-	if (possibleDirections.empty())
-	{
-		Explore();
-		return;
-	}
-	// Otherwise move in the direction closest to the target
 	else
 	{
-		float minDistance = -1.f;
-		for (eDirection dir : possibleDirections)
-		{
-			switch (dir)
-			{
-			case DIR_UP:
-				nextPos = position + glm::vec2(-1.f, 0.f);
-				break;
-			case DIR_DOWN:
-				nextPos = position + glm::vec2(1.f, 0.f);
-				break;
-			case DIR_LEFT:
-				nextPos = position + glm::vec2(0.f, -1.f);
-				break;
-			case DIR_RIGHT:
-				nextPos = position + glm::vec2(0.f, 1.f);
-				break;
-			default:
-				break;
-			}
-			float distance = glm::length(nextPos - target->position);
-			if (minDistance < 0.f || distance < minDistance)
-			{
-				minDistance = distance;
-				direction = dir;
-			}
-		}
-		position = nextPos;
+		if (dx > 0)
+			direction = DIR_RIGHT;
+		else
+			direction = DIR_LEFT;
+	}
+
+	// Move one tile in the chosen direction
+	switch (direction)
+	{
+	case DIR_UP:
+		position.y -= 1;
+		break;
+	case DIR_DOWN:
+		position.y += 1;
+		break;
+	case DIR_LEFT:
+		position.x -= 1;
+		break;
+	case DIR_RIGHT:
+		position.x += 1;
+		break;
 	}
 }
-
-
-
-
 
 void Beholder::Attack(Beholder* other)
 {

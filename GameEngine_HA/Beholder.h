@@ -26,6 +26,9 @@ public:
     std::vector<Beholder*> *allBeholders; 
     MazeHelper* _mazeHelper;
     Beholder* target;
+    float deltaTime = std::clock();
+    float duration = 0;
+    int pathIndex = 0;
 };
 
 struct sBeholderThreadData
