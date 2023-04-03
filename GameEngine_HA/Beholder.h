@@ -7,26 +7,49 @@
 enum eDirection {
     DIR_NONE, DIR_UP, DIR_DOWN, DIR_LEFT, DIR_RIGHT
 };
-
+struct Coord
+{
+    int x;
+    int y;
+    bool operator== (const Coord& rhs) const
+    {
+        if (this->x != rhs.x)
+            return false;
+        if (this->y != rhs.y)
+            return false;
+        return true;
+    }
+    bool operator< (const Coord& rhs) const
+    {
+        return this->x < rhs.x || (this->x == rhs.x && this->y < rhs.y);
+    }
+};
 struct Node {
     int x;
     int y;
+    glm::vec2 dir;
     float h;
+    float g;
+    int f() const {
+        return h + g;
+    }
     Node* parent;
 
-    bool operator<(const Node& rhs) {
-        return this->h < rhs.h;
+    bool operator<(const Node& rhs) const {
+        return this->f() < rhs.f();
     }
+    std::vector<Node*> neighbours;
 };
 
 struct CompareNode
 {
 public:
-    bool operator()(Node* a, Node* b)
+    bool operator()(Node* a, Node* b) const
     {
-        return a > b;
+        return a->f() > b->f();
     }
 };
+
 
 class Beholder {
 public:
@@ -51,6 +74,7 @@ public:
     float duration = 0;
     int pathIndex = 0;
     std::vector<Node*> path;
+    std::vector<Node*> AStarSearch(Node* start, Node* end, std::vector<std::vector<char>> maze);
 };
 
 struct sBeholderThreadData
