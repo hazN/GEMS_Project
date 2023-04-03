@@ -2,6 +2,8 @@
 #include <Windows.h>
 #include <iostream>
 #include "quaternion_utils.h"
+#include <algorithm>
+#include <queue>
 eDirection turnAround(eDirection direction);
 
 Beholder::Beholder(int id, glm::vec2 position, MazeHelper* _mazeHelper)
@@ -78,8 +80,8 @@ void Beholder::Update()
 		mesh->RGBA_colour = glm::vec4(1.f, 0.f, 0.f, 1.f);
 
 		// Rotate and scale down
-		float rotation_speed = 10.f;  
-		float scale_speed = 0.000001f;   
+		float rotation_speed = 10.f;
+		float scale_speed = 0.000001f;
 		while (mesh->scaleXYZ.x > 0.05f) {
 			// Rotate
 			glm::quat rotateDir = q_utils::LookAt(glm::vec3(position.x, 10.f, position.y), glm::vec3(0, 1, 0));
@@ -89,7 +91,6 @@ void Beholder::Update()
 			float current_scale = mesh->scaleXYZ.x;
 			mesh->SetUniformScale(current_scale - scale_speed);
 		}
-
 	}
 	if (mesh->scaleXYZ.x < 0.05f)
 	{
@@ -206,39 +207,127 @@ void Beholder::LineOfSight()
 
 void Beholder::Chase()
 {
-	int dy = (int)std::round(target->position.y - position.y);
-	int dx = (int)std::round(target->position.x - position.x);
-
-	if (std::abs(dy) > std::abs(dx))
+	duration = (std::clock() - deltaTime) / (double)CLOCKS_PER_SEC;
+	if (duration > 5.f )
 	{
-		if (dy > 0)
-			direction = DIR_DOWN;
-		else
+		deltaTime = std::clock();
+		pathIndex++;
+		if (pathIndex >= path.size()) {
+			return;
+		}
+		// Get direction
+		glm::vec2 dir;
+		if (path[pathIndex]->x < path[pathIndex - 1]->x) {
+			dir = glm::vec2(-1.f, 0.f);
 			direction = DIR_UP;
-	}
-	else
-	{
-		if (dx > 0)
-			direction = DIR_RIGHT;
-		else
+		}
+		else if (path[pathIndex]->x > path[pathIndex - 1]->x) {
+			dir = glm::vec2(1.f, 0.f);
+			direction = DIR_DOWN;
+		}
+		else if (path[pathIndex]->y < path[pathIndex - 1]->y) {
+			dir = glm::vec2(0.f, -1.f);
 			direction = DIR_LEFT;
+		}
+		else if (path[pathIndex]->y > path[pathIndex - 1]->y) {
+			dir = glm::vec2(0.f, 1.f);
+			direction = DIR_RIGHT;
+		}
+		else {
+			return;
+		}
+		// Update position
+		position += dir;
+		return;
 	}
+	pathIndex = 0;
+	// Start of search
 
-	// Move one tile in the chosen direction
-	switch (direction)
+	// Keep track of nodes in a vector to make it easier to delete since the parentMap may have multiple
+	// copies of the same node
+	std::vector<Node*> nodesToDelete;
+	// Map to store parents
+	std::map<Node*, Node*> parentMap;
+
+	// Get start node
+	Node start = { (int)position.y, (int)position.x, 0 };
+	Node end = { (int)target->position.y, (int)target->position.x, 0 };
+	Node* startNode = new Node(start);
+	parentMap[startNode] = nullptr;
+	// Use priority queue
+	std::priority_queue<Node*, std::vector<Node*>, CompareNode> open;
+	open.push(startNode);
+	nodesToDelete.push_back(startNode);
+
+	// Greedy best-first search
+	while (!open.empty()) {
+		// Get node with lowest heuristic value
+		Node* currNode = open.top();
+		open.pop();
+
+		// Check if target has been hit
+		if (currNode->x == (int)target->position.y && currNode->x == (int)target->position.y) {
+			// Make path by checking the parents
+			std::vector<Node*> newPath;
+			Node* pNode = new Node();
+			*pNode = *currNode;
+			while (pNode != nullptr) {
+				newPath.push_back(pNode);
+				pNode = parentMap[pNode];
+			}
+			// Reverse to correct order
+			std::reverse(newPath.begin(), newPath.end());
+
+			// Delete old path
+			for (Node* node : path) {
+				delete node;
+			}
+			path.clear();
+
+			// Set new path
+			path = newPath;
+
+			for (size_t i = 0; i < nodesToDelete.size(); i++)
+			{
+				if (nodesToDelete[i] != nullptr)
+				{
+					delete nodesToDelete[i];
+				}
+			}
+
+			return;
+		}
+
+		// Check if distance to target is greater than 20
+		if (abs(currNode->x - start.x) > 19 || abs(currNode->y - start.y) > 19) {
+			// Stop search
+			break;
+		}
+
+		// Generate successor nodes
+		std::vector<Node> neighbours;
+		neighbours.push_back({ currNode->x - 1, currNode->y, glm::distance(glm::vec2(currNode->x - 1, currNode->y), target->position) });
+		neighbours.push_back({ currNode->x + 1, currNode->y, glm::distance(glm::vec2(currNode->x + 1, currNode->y), target->position) });
+		neighbours.push_back({ currNode->x, currNode->y - 1, glm::distance(glm::vec2(currNode->x, currNode->y - 1), target->position) });
+		neighbours.push_back({ currNode->x, currNode->y + 1, glm::distance(glm::vec2(currNode->x, currNode->y + 1), target->position) });
+
+		// Create and insert successor nodes into priority queue
+		for (Node& neighbour : neighbours) {
+			if (_mazeHelper->maze[neighbour.y][neighbour.x] != 'x') {
+				Node* currNeighbour = new Node(neighbour);
+				parentMap[currNeighbour] = currNode;
+				currNeighbour->parent = currNode;
+				open.push(currNeighbour);
+				nodesToDelete.push_back(currNeighbour);
+			}
+		}
+	}
+	for (size_t i = 0; i < nodesToDelete.size(); i++)
 	{
-	case DIR_UP:
-		position.y -= 1;
-		break;
-	case DIR_DOWN:
-		position.y += 1;
-		break;
-	case DIR_LEFT:
-		position.x -= 1;
-		break;
-	case DIR_RIGHT:
-		position.x += 1;
-		break;
+		if (nodesToDelete[i] != nullptr)
+		{
+			delete nodesToDelete[i];
+		}
 	}
 }
 
@@ -272,4 +361,3 @@ eDirection turnAround(eDirection direction)
 	}
 	return direction;
 }
-

@@ -7,6 +7,27 @@
 enum eDirection {
     DIR_NONE, DIR_UP, DIR_DOWN, DIR_LEFT, DIR_RIGHT
 };
+
+struct Node {
+    int x;
+    int y;
+    float h;
+    Node* parent;
+
+    bool operator<(const Node& rhs) {
+        return this->h < rhs.h;
+    }
+};
+
+struct CompareNode
+{
+public:
+    bool operator()(Node* a, Node* b)
+    {
+        return a > b;
+    }
+};
+
 class Beholder {
 public:
     Beholder(int id, glm::vec2 position, MazeHelper* _mazeHelper);
@@ -29,6 +50,7 @@ public:
     float deltaTime = std::clock();
     float duration = 0;
     int pathIndex = 0;
+    std::vector<Node*> path;
 };
 
 struct sBeholderThreadData
