@@ -43,7 +43,7 @@ void Beholder::Update()
 		// Attack if close enough
 		if (target != nullptr)
 		{
-			if (glm::length(target->position - position) < 0.5f)
+			if (glm::length(target->mesh->position - mesh->position) < 0.5f)
 			{
 				Attack(target);
 				target = nullptr;
@@ -84,11 +84,11 @@ void Beholder::Update()
 
 		// Rotate and scale down
 		float rotation_speed = 10.f;
-		float scale_speed = 0.000001f;
+		float scale_speed = 0.0000001f;
 		while (mesh->scaleXYZ.x > 0.05f) {
 			// Rotate
 			glm::quat rotateDir = q_utils::LookAt(glm::vec3(position.x, 10.f, position.y), glm::vec3(0, 1, 0));
-			this->mesh->qRotation = q_utils::RotateTowards(this->mesh->qRotation, -rotateDir, 3.14f * 0.05f);
+			this->mesh->qRotation = q_utils::RotateTowards(this->mesh->qRotation, -rotateDir, 3.14f * 0.5f);
 
 			// Scale down
 			float current_scale = mesh->scaleXYZ.x;
@@ -227,7 +227,7 @@ void Beholder::Chase()
 	}
 	else
 	{
-		// Call DFS to find a new path
+
 		Node* start = new Node;
 		start->x = this->position.x;
 		start->y = this->position.y;
@@ -255,6 +255,8 @@ int getDistance(Node* a, Node* b) {
 
 std::vector<Node*> Beholder::DepthFirstSearch(Node* start, Node* end, std::vector<std::vector<char>> maze, int maxDepth)
 {
+	deltaTime = std::clock();
+
 	std::stack<Node*> open;
 	std::unordered_set<std::string> closed;
 	std::vector<Node*> _path;
@@ -263,6 +265,14 @@ std::vector<Node*> Beholder::DepthFirstSearch(Node* start, Node* end, std::vecto
 
 	while (!open.empty())
 	{
+		// Check if the search has exceeded the maximum depth
+		duration = (std::clock() - deltaTime) / (double)CLOCKS_PER_SEC;
+		if (duration > 1.5f)
+		{
+			deltaTime = std::clock();
+			Explore();
+			return _path;
+		}
 		// Pop the top node from frontier stack
 		Node* currentNode = open.top();
 		open.pop();
