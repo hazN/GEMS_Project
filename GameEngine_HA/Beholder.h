@@ -33,18 +33,15 @@ public:
     eDirection direction;
     cMeshObject* mesh;
     glm::vec2 position;
-    glm::vec2 prevPosition;
     bool isAlive; 
     bool exitThread; 
     std::vector<Beholder*> *allBeholders; 
     MazeHelper* _mazeHelper;
     Beholder* target;
-    float deltaTime = std::clock();
-    float duration = 0;
+    Beholder* lastTarget;
     int pathIndex = 0;
     std::vector<Node*> path;
     std::vector<Node*> DepthFirstSearch(Node* startNode, Node* goalNode, std::vector<std::vector<char>> maze, int maxDepth);
-   // std::vector<Node*> AStarSearch(Node* start, Node* end, std::vector<std::vector<char>> maze);
 };
 
 struct sBeholderThreadData

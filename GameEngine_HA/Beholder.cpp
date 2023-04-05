@@ -13,7 +13,6 @@ Beholder::Beholder(int id, glm::vec2 position, MazeHelper* _mazeHelper)
 {
 	this->id = id;
 	this->position = position;
-	this->prevPosition = position;
 	this->_mazeHelper = _mazeHelper;
 	this->isAlive = true;
 	this->exitThread = false;
@@ -48,6 +47,7 @@ void Beholder::Update()
 			{
 				Attack(target);
 				target = nullptr;
+				lastTarget = nullptr;
 				return;
 			}
 		}
@@ -67,14 +67,14 @@ void Beholder::Update()
 		}
 		else if (target != nullptr)
 		{
-			this->mesh->bUse_RGBA_colour = true;
-			this->mesh->RGBA_colour = glm::vec4(0.1f, 0.7f, 0.1f, 1.f);
+			//this->mesh->bUse_RGBA_colour = true;
+			//this->mesh->RGBA_colour = glm::vec4(0.1f, 0.7f, 0.1f, 1.f);
 			state = CHASING;
 			Chase();
 		}
 		else
 		{
-			this->mesh->bUse_RGBA_colour = false;
+			//this->mesh->bUse_RGBA_colour = false;
 			state = EXPLORING;
 			Explore();
 		}
@@ -103,6 +103,7 @@ void Beholder::Update()
 	}
 	Sleep(50);
 }
+
 
 void Beholder::Explore()
 {
@@ -253,8 +254,6 @@ int getDistance(Node* a, Node* b) {
 
 std::vector<Node*> Beholder::DepthFirstSearch(Node* start, Node* end, std::vector<std::vector<char>> maze, int maxDepth)
 {
-	deltaTime = std::clock();
-
 	std::stack<Node*> open;
 	std::unordered_set<std::string> closed;
 	std::vector<Node*> _path;
@@ -263,13 +262,6 @@ std::vector<Node*> Beholder::DepthFirstSearch(Node* start, Node* end, std::vecto
 
 	while (!open.empty())
 	{
-		// Check if the search has exceeded the maximum depth
-		duration = (std::clock() - deltaTime) / (double)CLOCKS_PER_SEC;
-		if (duration > 1.5f)
-		{
-			deltaTime = std::clock();
-			return _path;
-		}
 		// Pop the top node from frontier stack
 		Node* currentNode = open.top();
 		open.pop();
@@ -366,90 +358,12 @@ std::vector<Node*> Beholder::DepthFirstSearch(Node* start, Node* end, std::vecto
 	}
 
 	// No path found
-	return std::vector<Node*>();
+	////std::cout << "Failed to find a path" << std::endl;
+	// Explore to avoid getting stuck
+	Explore();
+	//_path = DepthFirstSearch(start, end, maze, 40);
+	return _path;
 }
-
-//std::vector<Node*> AStarSearch(Node* start, Node* end, std::vector<std::vector<char>> maze)
-//{
-//	// Open and closed sets
-//	std::priority_queue<Node*, std::vector<Node*>, CompareNode> open;
-//	std::map<Coord, Node*> closed;
-//
-//	// Add the start node
-//	start->g = 0;
-//	start->h = getDistance(start, end);
-//	start->parent = nullptr;
-//	open.push(start);
-//
-//	// Loop until end is found
-//	while (!open.empty())
-//	{
-//		// Pop lowest distance node
-//		Node* curNode = open.top();
-//		open.pop();
-//
-//		// Check if it has reached the end
-//		if (curNode == end)
-//		{
-//			// Create the path for the agent to follow
-//			std::vector<Node*> rPath;
-//			while (curNode != nullptr)
-//			{
-//				rPath.push_back(curNode);
-//				rPath[rPath.size() - 1]->dir = glm::vec2(rPath[rPath.size() - 1]->x, rPath[rPath.size() - 1]->y) - glm::vec2(curNode->x, curNode->y);
-//				curNode = curNode->parent;
-//			}
-//			// Reverse the order so it's start to finish
-//			std::vector<Node*> path(rPath.rbegin(), rPath.rend());
-//			return path;
-//		}
-//
-//		// Find cardinal neighbors on the fly
-//		const int dx[4] = { 0, 0, 1, -1 };
-//		const int dy[4] = { 1, -1, 0, 0 };
-//		for (int i = 0; i < 4; ++i)
-//		{
-//			// Calculate coordinates of potential neighbor
-//			int nx = curNode->x + dx[i];
-//			int ny = curNode->y + dy[i];
-//
-//			// Check if neighbor is within bounds
-//			if (nx < 0 || nx > maze[0].size() - 1 || ny < 0 || ny > maze.size() - 1)
-//			{
-//				continue;
-//			}
-//
-//			// Check if neighbor is a wall
-//			if (maze[ny][nx] == 'x')
-//			{
-//				continue;
-//			}
-//
-//			// Create neighbor node if it hasn't been closed already
-//			if (closed.find(Coord{nx, ny}) != closed.end())
-//			{
-//				continue;
-//			}
-//			Node* neighbour = new Node();
-//			neighbour->x = nx;
-//			neighbour->y = ny;
-//			neighbour->parent = curNode;
-//
-//			// Calculate distance from start and finish
-//			neighbour->g = curNode->g + getDistance(curNode, neighbour);
-//			neighbour->h = getDistance(neighbour, end);
-//
-//			// Add neighbor to open set
-//			open.push(neighbour);
-//		}
-//
-//		// Add the current node to the closed set
-//		closed.emplace(Coord{curNode->x, curNode->y}, curNode);
-//	}
-//
-//	// Return an empty path incase there is no end node
-//	return std::vector<Node*>();
-//}
 
 eDirection turnAround(eDirection direction)
 {

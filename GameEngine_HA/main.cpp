@@ -758,35 +758,6 @@ int main(int argc, char* argv[])
 				0, // 0 or CREATE_SUSPENDED
 				lpThreadId);
 	}
-
-	//const int NUM_BEHOLDERS = 3000;
-	//std::vector<Beholder*> *pTheBeholders = new std::vector<Beholder*>();
-	//std::vector<glm::vec2> portionToDraw;
-	//for (size_t i = 0; i < NUM_BEHOLDERS; i++)
-	//{
-	//	glm::vec2 pos = _mazeHelper->getRandomMazeCell();
-	//	Beholder* pBeholder = new Beholder(i, pos, _mazeHelper);
-	//	pTheBeholders->push_back(pBeholder);
-	//	pBeholder->allBeholders = pTheBeholders;
-	//	//g_pMeshObjects.push_back(pBeholder->mesh);
-
-	//	// The {0} is a short cut if it's integer values
-	//	// (otherwise you could use a loop or memset)
-	//	LPDWORD lpThreadId = 0;
-	//	HANDLE hThread = 0;
-
-	//	sBeholderThreadData* pBeholderData = new sBeholderThreadData();
-	//	pBeholderData->pTheBeholder = pBeholder;
-
-	//	hThread =
-	//		CreateThread(NULL,				// Security attributes
-	//			0,					// Use default stack size
-	//			UpdateBeholderThread,	// Address of the function we are going to call
-	//			(void*)pBeholderData,			// Please wait a moment
-	//			0, // 0 or CREATE_SUSPENDED
-	//			lpThreadId);
-
-	//}
 	bool isKeyPressed = false;
 	while (!glfwWindowShouldClose(window))
 	{
