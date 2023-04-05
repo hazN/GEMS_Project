@@ -25,7 +25,7 @@
 #include "AIBrain.h"
 #include "CarAnimations.h"
 #include "globalThings.h"
-
+#include <iterator>
 #include "cShaderManager.h"
 #include "cVAOManager/cVAOManager.h"
 #include "cLightHelper.h"
@@ -647,7 +647,7 @@ int main(int argc, char* argv[])
 	//bool increase = true;
 	int increase = 1;
 	//pVAOManager->Load();
-	MazeHelper* _mazeHelper = new MazeHelper("maze100.txt");
+	MazeHelper* _mazeHelper = new MazeHelper("maze1000.txt");
 	//glm::vec2 portionPosition = glm::vec2((int)g_cameraEye.x, (int)g_cameraEye.z);
 	//	std::vector<cMeshObject*> portionMaze = _mazeHelper->getMazeMeshesAt(portionPosition, portionSize);
 
@@ -721,36 +721,95 @@ int main(int argc, char* argv[])
 	std::vector<std::vector<char>> portionMaze;
 	int portionSize = 20.f;
 	glm::vec2 portionPosition = glm::vec2(0, 0);
-	const int NUM_BEHOLDERS = 500;
-	std::vector<Beholder*> *pTheBeholders = new std::vector<Beholder*>();
+	const int NUM_BEHOLDERS = 1000;
+	std::vector<Beholder*>* pTheBeholders = new std::vector<Beholder*>();
 	std::vector<glm::vec2> portionToDraw;
+
+	// Do threads in multiple steps to avoid errors where beholders are acting before the rest are even on a thread yet
+	// Create the Beholders
 	for (size_t i = 0; i < NUM_BEHOLDERS; i++)
 	{
 		glm::vec2 pos = _mazeHelper->getRandomMazeCell();
 		Beholder* pBeholder = new Beholder(i, pos, _mazeHelper);
 		pTheBeholders->push_back(pBeholder);
 		pBeholder->allBeholders = pTheBeholders;
-		//g_pMeshObjects.push_back(pBeholder->mesh);
+	}
 
-		// The {0} is a short cut if it's integer values
-		// (otherwise you could use a loop or memset)
+	// Create the threas 
+	std::vector<sBeholderThreadData*> threadDataList;
+	for (size_t i = 0; i < NUM_BEHOLDERS; i++)
+	{
+		sBeholderThreadData* pBeholderData = new sBeholderThreadData();
+		pBeholderData->pTheBeholder = pTheBeholders->at(i);
+		threadDataList.push_back(pBeholderData);
+	}
+
+	// Start the threads
+	for (size_t i = 0; i < NUM_BEHOLDERS; i++)
+	{
 		LPDWORD lpThreadId = 0;
 		HANDLE hThread = 0;
 
-		sBeholderThreadData* pBeholderData = new sBeholderThreadData();
-		pBeholderData->pTheBeholder = pBeholder;
-
 		hThread =
-			CreateThread(NULL,				// Security attributes
-				0,					// Use default stack size
-				UpdateBeholderThread,	// Address of the function we are going to call
-				(void*)pBeholderData,			// Please wait a moment
+			CreateThread(NULL,              // Security attributes
+				0,                  // Use default stack size
+				UpdateBeholderThread,   // Address of the function we are going to call
+				(void*)threadDataList[i],   // Pass in the thread data object for this Beholder
 				0, // 0 or CREATE_SUSPENDED
 				lpThreadId);
-
 	}
+
+	//const int NUM_BEHOLDERS = 3000;
+	//std::vector<Beholder*> *pTheBeholders = new std::vector<Beholder*>();
+	//std::vector<glm::vec2> portionToDraw;
+	//for (size_t i = 0; i < NUM_BEHOLDERS; i++)
+	//{
+	//	glm::vec2 pos = _mazeHelper->getRandomMazeCell();
+	//	Beholder* pBeholder = new Beholder(i, pos, _mazeHelper);
+	//	pTheBeholders->push_back(pBeholder);
+	//	pBeholder->allBeholders = pTheBeholders;
+	//	//g_pMeshObjects.push_back(pBeholder->mesh);
+
+	//	// The {0} is a short cut if it's integer values
+	//	// (otherwise you could use a loop or memset)
+	//	LPDWORD lpThreadId = 0;
+	//	HANDLE hThread = 0;
+
+	//	sBeholderThreadData* pBeholderData = new sBeholderThreadData();
+	//	pBeholderData->pTheBeholder = pBeholder;
+
+	//	hThread =
+	//		CreateThread(NULL,				// Security attributes
+	//			0,					// Use default stack size
+	//			UpdateBeholderThread,	// Address of the function we are going to call
+	//			(void*)pBeholderData,			// Please wait a moment
+	//			0, // 0 or CREATE_SUSPENDED
+	//			lpThreadId);
+
+	//}
+	bool isKeyPressed = false;
 	while (!glfwWindowShouldClose(window))
 	{
+		if (glfwGetKey(window, GLFW_KEY_KP_0) && !isKeyPressed)
+		{
+			isKeyPressed = true;
+			int randomIndex = -1;
+			bool foundOne = false;
+			while (!foundOne)
+			{
+				randomIndex = rand() % pTheBeholders->size();
+				if (pTheBeholders->at(randomIndex)->isAlive && pTheBeholders->at(randomIndex)->state == CHASING)
+				{
+					foundOne = true;
+					g_cameraEye.z = pTheBeholders->at(randomIndex)->position.x;
+					g_cameraEye.x = pTheBeholders->at(randomIndex)->position.y;
+				}
+			}
+		}
+		else if (!glfwGetKey(window, GLFW_KEY_KP_0))
+		{
+			isKeyPressed = false;
+		}
 		glm::vec3 portion = (::g_cameraEye + 10.f * ::g_cameraTarget);
 		portionPosition = glm::vec2((int)(portion.x + ::g_cameraTarget.x), (int)(portion.z + ::g_cameraTarget.z));
 		//portionPosition = glm::floor(glm::vec2(::g_cameraEye.x, ::g_cameraEye.z));

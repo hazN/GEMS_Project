@@ -13,6 +13,7 @@ Beholder::Beholder(int id, glm::vec2 position, MazeHelper* _mazeHelper)
 {
 	this->id = id;
 	this->position = position;
+	this->prevPosition = position;
 	this->_mazeHelper = _mazeHelper;
 	this->isAlive = true;
 	this->exitThread = false;
@@ -50,7 +51,6 @@ void Beholder::Update()
 				return;
 			}
 		}
-
 		LineOfSight();
 		glm::vec3 targetPos = glm::vec3(position.y - 0.5f, 0.5f, position.x - 0.5f);
 		if (this->mesh->position != targetPos)
@@ -69,11 +69,13 @@ void Beholder::Update()
 		{
 			this->mesh->bUse_RGBA_colour = true;
 			this->mesh->RGBA_colour = glm::vec4(0.1f, 0.7f, 0.1f, 1.f);
+			state = CHASING;
 			Chase();
 		}
 		else
 		{
 			this->mesh->bUse_RGBA_colour = false;
+			state = EXPLORING;
 			Explore();
 		}
 	}
@@ -87,7 +89,7 @@ void Beholder::Update()
 		float scale_speed = 0.0000001f;
 		while (mesh->scaleXYZ.x > 0.05f) {
 			// Rotate
-			glm::quat rotateDir = q_utils::LookAt(glm::vec3(position.x, 10.f, position.y), glm::vec3(0, 1, 0));
+			glm::quat rotateDir = q_utils::LookAt(glm::vec3(mesh->position.x, 50.f, mesh->position.y), glm::vec3(0, 1, 0));
 			this->mesh->qRotation = q_utils::RotateTowards(this->mesh->qRotation, -rotateDir, 3.14f * 0.5f);
 
 			// Scale down
@@ -213,30 +215,26 @@ void Beholder::Chase()
 	// Check if there is a path to follow
 	if (!path.empty())
 	{
-		pathIndex++;
-		if (pathIndex >= path.size())
-		{
-			for (size_t i = 0; i < path.size(); i++)
-			{
-				delete path[i];
-			}
-			path.clear();
-			return;
-		}
-		this->position = glm::vec2(path[pathIndex]->x, path[pathIndex]->y);
+		this->position = glm::vec2(path[0]->x, path[0]->y);
+		delete path[0];
+		path.erase(path.begin());
 	}
 	else
 	{
-
+		// No path exists, find a new one
 		Node* start = new Node;
 		start->x = this->position.x;
 		start->y = this->position.y;
 		Node* end = new Node;
-		end->x = target->position.x;
-		end->y = target->position.y;
+		if (target != nullptr)
+		{
+			end->x = target->position.x;
+			end->y = target->position.y;
+		}
 		path = DepthFirstSearch(start, end, _mazeHelper->maze, 40);
 	}
 }
+
 
 void Beholder::Attack(Beholder* other)
 {
@@ -270,7 +268,6 @@ std::vector<Node*> Beholder::DepthFirstSearch(Node* start, Node* end, std::vecto
 		if (duration > 1.5f)
 		{
 			deltaTime = std::clock();
-			Explore();
 			return _path;
 		}
 		// Pop the top node from frontier stack
@@ -300,24 +297,24 @@ std::vector<Node*> Beholder::DepthFirstSearch(Node* start, Node* end, std::vecto
 		std::vector<eDirection> possibleDirections;
 
 		// Check the potential directions
-		if (position.x > 0)
+		if (currentNode->x > 0)
 		{
-			if (direction != DIR_DOWN && _mazeHelper->maze[position.x - 1][position.y] == 'o')
+			if (direction != DIR_DOWN && _mazeHelper->maze[currentNode->x - 1][currentNode->y] == 'o')
 				possibleDirections.push_back(DIR_UP);
 		}
-		if (position.x < _mazeHelper->maze.size() - 1)
+		if (currentNode->x < _mazeHelper->maze.size() - 1)
 		{
-			if (direction != DIR_UP && _mazeHelper->maze[position.x + 1][position.y] == 'o')
+			if (direction != DIR_UP && _mazeHelper->maze[currentNode->x + 1][currentNode->y] == 'o')
 				possibleDirections.push_back(DIR_DOWN);
 		}
-		if (position.y > 0)
+		if (currentNode->y > 0)
 		{
-			if (direction != DIR_RIGHT && _mazeHelper->maze[position.x][position.y - 1] == 'o')
+			if (direction != DIR_RIGHT && _mazeHelper->maze[currentNode->x][currentNode->y - 1] == 'o')
 				possibleDirections.push_back(DIR_LEFT);
 		}
-		if (position.y < _mazeHelper->maze[0].size() - 1)
+		if (currentNode->y < _mazeHelper->maze[0].size() - 1)
 		{
-			if (direction != DIR_LEFT && _mazeHelper->maze[position.x][position.y + 1] == 'o')
+			if (direction != DIR_LEFT && _mazeHelper->maze[currentNode->x][currentNode->y + 1] == 'o')
 				possibleDirections.push_back(DIR_RIGHT);
 		}
 		// Generate child nodes
@@ -369,7 +366,7 @@ std::vector<Node*> Beholder::DepthFirstSearch(Node* start, Node* end, std::vecto
 	}
 
 	// No path found
-	return path;
+	return std::vector<Node*>();
 }
 
 //std::vector<Node*> AStarSearch(Node* start, Node* end, std::vector<std::vector<char>> maze)
@@ -453,7 +450,6 @@ std::vector<Node*> Beholder::DepthFirstSearch(Node* start, Node* end, std::vecto
 //	// Return an empty path incase there is no end node
 //	return std::vector<Node*>();
 //}
-
 
 eDirection turnAround(eDirection direction)
 {

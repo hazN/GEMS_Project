@@ -7,48 +7,9 @@
 enum eDirection {
     DIR_NONE, DIR_UP, DIR_DOWN, DIR_LEFT, DIR_RIGHT
 };
-//struct Coord
-//{
-//    int x;
-//    int y;
-//    bool operator== (const Coord& rhs) const
-//    {
-//        if (this->x != rhs.x)
-//            return false;
-//        if (this->y != rhs.y)
-//            return false;
-//        return true;
-//    }
-//    bool operator< (const Coord& rhs) const
-//    {
-//        return this->x < rhs.x || (this->x == rhs.x && this->y < rhs.y);
-//    }
-//};
-//struct Node {
-//    int x;
-//    int y;
-//    glm::vec2 dir;
-//    float h;
-//    float g;
-//    int f() const {
-//        return h + g;
-//    }
-//    Node* parent;
-//
-//    bool operator<(const Node& rhs) const {
-//        return this->f() < rhs.f();
-//    }
-//    std::vector<Node*> neighbours;
-//};
-//
-//struct CompareNode
-//{
-//public:
-//    bool operator()(Node* a, Node* b) const
-//    {
-//        return a->f() > b->f();
-//    }
-//};
+enum eState {
+    NO_STATE, EXPLORING, CHASING 
+};
 
 struct Node {
     int x;
@@ -68,9 +29,11 @@ public:
     void Attack(Beholder* other); 
 
     int id; 
+    eState state;
     eDirection direction;
     cMeshObject* mesh;
     glm::vec2 position;
+    glm::vec2 prevPosition;
     bool isAlive; 
     bool exitThread; 
     std::vector<Beholder*> *allBeholders; 
